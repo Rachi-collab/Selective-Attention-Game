@@ -1,0 +1,6 @@
+# Git Ignore for Selective Attention Game
+.gemini/
+.agents/
+.git/
+temp_colleague_repo/
+*.log

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modak Focus Challenge - Selective Attention Game</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Audio and settings floating controls -->
+        <div class="settings-floating">
+            <button id="muteBtn" class="icon-btn" onclick="toggleMute()" title="Toggle Sound">🔊</button>
+        </div>
+
+        <!-- Only ONE Game Screen with Top Dashboard and Canvas -->
+        <div id="gameScreen" class="screen active">
+            <!-- Glassmorphic Dashboard -->
+            <div class="game-dashboard">
+                <div class="dash-item score">
+                    <span class="dash-label">SCORE</span>
+                    <span id="scoreVal" class="dash-value">0</span>
+                </div>
+                <div class="dash-item timer-container" id="timerDashItem">
+                    <span class="dash-label">TIME LEFT</span>
+                    <div class="progress-bar-bg">
+                        <div id="timerProgress" class="progress-bar-fill"></div>
+                    </div>
+                    <span id="timerVal" class="dash-value">30.0s</span>
+                </div>
+                <div class="dash-item lives">
+                    <span class="dash-label">MISTAKES</span>
+                    <span id="mistakeVal" class="dash-value">0 / 3</span>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <div class="game-tips">
+                <span class="badge">Selective Attention</span>
+                <span class="tip-text">Find and tap all 5 Modaks hidden on the ground! Avoid distractions.</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
