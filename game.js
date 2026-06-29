@@ -1,5 +1,3 @@
-// Modak Focus Challenge - Core Game Script (Fixed Targets & High UX Mode)
-
 // ----------------------------------------------------
 // 1. STATE & VARIABLES
 // ----------------------------------------------------
@@ -47,7 +45,7 @@ bgImage.onload = () => {
 let highScore = localStorage.getItem("modak_high_score") || 0;
 
 // ----------------------------------------------------
-// 2. FIXED TARGET MODAK COORDINATES (Perfected for Background Image)
+// 2. TARGET MODAK COORDINATES 
 // ----------------------------------------------------
 let modaks = [
     { id: 1, x: 375, y: 270, radius: 28, collected: false }, // Upper-Left Modak (near leaf)
