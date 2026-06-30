@@ -21,7 +21,7 @@ let gameTimerInterval = null;
 // Game Arrays (Particles, Floating Texts, Tap Ripples)
 let particles = [];
 let floatingTexts = [];
-let ripples = []; 
+let ripples = [];
 
 // Screen Shaker Utility
 let screenShakeActive = false;
@@ -50,9 +50,9 @@ const distractions = [
     { type: 'stone', x: 190, y: 418, radius: 28 },
     { type: 'stone', x: 432, y: 413, radius: 28 },
     { type: 'stone', x: 719, y: 337, radius: 28 },
-    { type: 'leaf',  x: 534, y: 371, radius: 20 },
-    { type: 'leaf',  x: 685, y: 391, radius: 20 },
-    { type: 'leaf',  x: 552, y: 317, radius: 20 }
+    { type: 'leaf', x: 534, y: 371, radius: 20 },
+    { type: 'leaf', x: 685, y: 391, radius: 20 },
+    { type: 'leaf', x: 552, y: 317, radius: 20 }
 ];
 
 // ----------------------------------------------------
@@ -176,7 +176,7 @@ if (localStorage.getItem("modak_muted") === "true") {
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    
+
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
 
@@ -302,7 +302,7 @@ function triggerScreenShake() {
     gameScreen.classList.remove("shake-screen");
     void gameScreen.offsetWidth; // Reflow
     gameScreen.classList.add("shake-screen");
-    
+
     setTimeout(() => {
         gameScreen.classList.remove("shake-screen");
         screenShakeActive = false;
@@ -324,13 +324,13 @@ function startGame() {
     particles = [];
     floatingTexts = [];
     ripples = [];
-    
+
     modaks.forEach(m => m.collected = false);
 
     document.getElementById("scoreVal").textContent = score;
     document.getElementById("mistakeVal").textContent = `0 / ${maxMistakes}`;
     document.getElementById("timerVal").textContent = `${timeLeft.toFixed(1)}s`;
-    
+
     const progressFill = document.getElementById("timerProgress");
     progressFill.style.width = '100%';
     progressFill.className = 'progress-bar-fill';
@@ -339,7 +339,7 @@ function startGame() {
     resizeCanvas();
 
     if (gameTimerInterval) clearInterval(gameTimerInterval);
-    
+
     let lastTime = Date.now();
     gameTimerInterval = setInterval(() => {
         if (gameState !== 'playing') return;
@@ -594,7 +594,7 @@ function drawCollectedIndicator(x, y) {
     ctx.lineTo(-2, 4);
     ctx.lineTo(6, -5);
     ctx.stroke();
-    
+
     ctx.restore();
 }
 
