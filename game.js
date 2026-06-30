@@ -1,5 +1,3 @@
-// Modak Focus Challenge - Core Game Script (Precision Coordinates Mode)
-
 // ----------------------------------------------------
 // 1. STATE & VARIABLES
 // ----------------------------------------------------
@@ -71,7 +69,7 @@ bgImage.onerror = (err) => {
 };
 
 // ----------------------------------------------------
-// 4. SCREEN NAVIGATOR (DOM Toggles)
+// 2. FIXED TARGET MODAK COORDINATES (Perfected for Background Image)
 // ----------------------------------------------------
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
