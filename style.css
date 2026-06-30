@@ -1,20 +1,32 @@
 /* Modern, High-Fidelity Styling for Modak Focus Challenge (Infineo Style) */
 
 :root {
-    --bg-primary: #0f172a;      /* Slate 900 */
-    --bg-secondary: #1e1b4b;    /* Indigo 950 */
-    --accent-gold: #fbbf24;     /* Amber 400 */
-    --accent-gold-hover: #f59e0b; /* Amber 500 */
-    --accent-indigo: #6366f1;   /* Indigo 500 */
-    --accent-purple: #8b5cf6;   /* Violet 500 */
-    --text-light: #f8fafc;      /* Slate 50 */
-    --text-muted: #94a3b8;      /* Slate 400 */
-    --panel-glass: rgba(30, 41, 59, 0.7); /* Translucent slate */
-    --border-glass: rgba(99, 102, 241, 0.2); /* Translucent indigo */
-    --color-correct: #10b981;   /* Emerald 500 */
-    --color-wrong: #ef4444;     /* Red 500 */
+    --bg-primary: #0f172a;
+    /* Slate 900 */
+    --bg-secondary: #1e1b4b;
+    /* Indigo 950 */
+    --accent-gold: #fbbf24;
+    /* Amber 400 */
+    --accent-gold-hover: #f59e0b;
+    /* Amber 500 */
+    --accent-indigo: #6366f1;
+    /* Indigo 500 */
+    --accent-purple: #8b5cf6;
+    /* Violet 500 */
+    --text-light: #f8fafc;
+    /* Slate 50 */
+    --text-muted: #94a3b8;
+    /* Slate 400 */
+    --panel-glass: rgba(30, 41, 59, 0.7);
+    /* Translucent slate */
+    --border-glass: rgba(99, 102, 241, 0.2);
+    /* Translucent indigo */
+    --color-correct: #10b981;
+    /* Emerald 500 */
+    --color-wrong: #ef4444;
+    /* Red 500 */
     --shadow-premium: 0 12px 40px 0 rgba(0, 0, 0, 0.65);
-    
+
     /* Canva Golden Scroll Borders Color Palette */
     --scroll-tan: #d7b585;
     --scroll-bg: #c49a65;
@@ -45,7 +57,8 @@ body {
 .game-container {
     width: 100%;
     max-width: 850px;
-    aspect-ratio: 1.6 / 1; /* Match canvas 800x500 ratio */
+    aspect-ratio: 1.6 / 1;
+    /* Match canvas 800x500 ratio */
     position: relative;
     display: flex;
     justify-content: center;
@@ -82,7 +95,8 @@ body {
 }
 
 #startScreen::before {
-    content: none; /* Remove any decorative border overlay */
+    content: none;
+    /* Remove any decorative border overlay */
 }
 
 /* Invisible transparent button overlaid over the painted START GAME button */
@@ -243,7 +257,7 @@ canvas {
 
 /* Screen shake effect on mistake */
 .shake-screen {
-    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+    animation: shake 0.3s cubic-bezier(.36, .07, .19, .97) both;
 }
 
 .game-tips {
@@ -272,7 +286,8 @@ canvas {
 #resultScreen {
     justify-content: center;
     align-items: center;
-    cursor: pointer; /* Indicates it's clickable to restart */
+    cursor: pointer;
+    /* Indicates it's clickable to restart */
     transition: background 0.5s ease;
 }
 
@@ -335,6 +350,7 @@ canvas {
         opacity: 0;
         transform: translateY(15px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -346,6 +362,7 @@ canvas {
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -356,21 +373,46 @@ canvas {
     0% {
         box-shadow: 0 0 2px #ef4444;
     }
+
     100% {
         box-shadow: 0 0 10px #ef4444;
     }
 }
 
 @keyframes shake {
-    10%, 90% { transform: translate3d(-2px, 0, 0); }
-    20%, 80% { transform: translate3d(4px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
-    40%, 60% { transform: translate3d(5px, 0, 0); }
+
+    10%,
+    90% {
+        transform: translate3d(-2px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(4px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-5px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(5px, 0, 0);
+    }
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
 }
 
 /* RESPONSIVE LAYOUT SCALING */
@@ -381,11 +423,11 @@ canvas {
         height: auto;
         min-height: 520px;
     }
-    
+
     .screen {
         border-radius: 20px;
     }
-    
+
     .result-box h1 {
         font-size: 2.8rem;
     }
@@ -395,7 +437,7 @@ canvas {
     body {
         padding: 10px;
     }
-    
+
     .game-container {
         max-width: 100%;
         min-height: 480px;
