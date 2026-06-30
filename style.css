@@ -84,7 +84,8 @@ body {
 
 /* 1. START SCREEN STYLING (Full Image Background) */
 #startScreen {
-    background: url('assets/StartScreen.png') center center / cover no-repeat;
+  background: url('/Selective-Attention-Game/assets/StartScreen.png') center center / cover no-repeat;
+  /* ... */
     border: none;
     outline: none;
     border-radius: 28px;
