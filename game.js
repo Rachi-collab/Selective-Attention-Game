@@ -1,4 +1,4 @@
-// Modak Focus Challenge - Core Game Script (Fixed Targets & High UX Mode)
+// Modak Focus Challenge - Core Game Script (Precision Coordinates Mode)
 
 // ----------------------------------------------------
 // 1. STATE & VARIABLES
@@ -20,10 +20,10 @@ const maxMistakes = 3;
 let timeLeft = 30.0; // seconds
 let gameTimerInterval = null;
 
-// Game Arrays
+// Game Arrays (Particles, Floating Texts, Tap Ripples)
 let particles = [];
 let floatingTexts = [];
-let ripples = []; // Tap feedback expanding rings
+let ripples = []; 
 
 // Screen Shaker Utility
 let screenShakeActive = false;
@@ -35,36 +35,63 @@ const screenShakeIntensity = 8;
 let isMuted = false;
 let audioCtx = null;
 
-// Background Image
+// ----------------------------------------------------
+// 2. FIXED TARGET MAPPED COORDINATES (Derived from 1536x1024 Background image)
+// ----------------------------------------------------
+const modaks = [
+    { id: 1, x: 318, y: 283, radius: 28, collected: false }, // Upper-Left Modak
+    { id: 2, x: 307, y: 371, radius: 28, collected: false }, // Bottom-Left Modak
+    { id: 3, x: 388, y: 315, radius: 28, collected: false }, // Middle Modak (under butterflies)
+    { id: 4, x: 479, y: 313, radius: 28, collected: false }, // Center-Right Modak
+    { id: 5, x: 539, y: 264, radius: 28, collected: false }, // Upper-Right Modak
+    { id: 6, x: 583, y: 410, radius: 28, collected: false }  // Bottom-Right Modak
+];
+
+const distractions = [
+    { type: 'snake', x: 615, y: 317, radius: 30 },
+    { type: 'stone', x: 190, y: 418, radius: 28 },
+    { type: 'stone', x: 432, y: 413, radius: 28 },
+    { type: 'stone', x: 719, y: 337, radius: 28 },
+    { type: 'leaf',  x: 534, y: 371, radius: 20 },
+    { type: 'leaf',  x: 685, y: 391, radius: 20 },
+    { type: 'leaf',  x: 552, y: 317, radius: 20 }
+];
+
+// ----------------------------------------------------
+// 3. IMAGE LOADER
+// ----------------------------------------------------
 const bgImage = new Image();
-bgImage.src = 'assets/background.png';
+bgImage.src = 'assets/Background.png'; // Capital 'B'
 let isBgLoaded = false;
 bgImage.onload = () => {
     isBgLoaded = true;
 };
-
-// High score stored locally
-let highScore = localStorage.getItem("modak_high_score") || 0;
-
-// ----------------------------------------------------
-// 2. FIXED TARGET MODAK COORDINATES (Perfected for Background Image)
-// ----------------------------------------------------
-let modaks = [
-    { id: 1, x: 375, y: 270, radius: 28, collected: false }, // Upper-Left Modak (near leaf)
-    { id: 2, x: 615, y: 285, radius: 28, collected: false }, // Upper-Right Modak (near stone)
-    { id: 3, x: 525, y: 328, radius: 28, collected: false }, // Middle Modak (under butterflies)
-    { id: 4, x: 340, y: 390, radius: 28, collected: false }, // Lower-Left Modak (near squirrel)
-    { id: 5, x: 722, y: 382, radius: 28, collected: false }  // Lower-Right Modak (near flower)
-];
-
-// Start button coordinates (green "START GAME" button printed on background image)
-const startButtonBox = { xMin: 50, xMax: 230, yMin: 360, yMax: 410 };
-
-// Play Again button coordinates drawn on Game Over canvas
-const playAgainButtonBox = { xMin: 450, xMax: 630, yMin: 288, yMax: 333 };
+bgImage.onerror = (err) => {
+    console.error("Failed to load background image assets/Background.png", err);
+};
 
 // ----------------------------------------------------
-// 3. AUDIO SYNTHESIZER (Web Audio API)
+// 4. SCREEN NAVIGATOR (DOM Toggles)
+// ----------------------------------------------------
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+// Bind DOM buttons
+document.getElementById('startBtn').addEventListener('click', () => {
+    playCorrectSound();
+    startGame();
+});
+
+document.getElementById('resultScreen').addEventListener('click', () => {
+    playCorrectSound();
+    showScreen('startScreen');
+    gameState = 'start';
+});
+
+// ----------------------------------------------------
+// 5. AUDIO SYNTHESIZER (Web Audio API)
 // ----------------------------------------------------
 function initAudio() {
     if (!audioCtx) {
@@ -75,7 +102,6 @@ function initAudio() {
     }
 }
 
-// Sound generator helper
 function playTone(freqStart, freqEnd, type, duration, volume = 0.1) {
     if (isMuted) return;
     initAudio();
@@ -116,7 +142,7 @@ function playIncorrectSound() {
 }
 
 function playTickSound() {
-    playTone(600, 600, 'triangle', 0.05, 0.10);
+    playTone(600, 600, 'triangle', 0.05, 0.08);
 }
 
 function playGameOverFanfare(isWin) {
@@ -147,25 +173,23 @@ if (localStorage.getItem("modak_muted") === "true") {
 }
 
 // ----------------------------------------------------
-// 4. CANVAS RESIZING (Device Pixel Ratio)
+// 6. CANVAS RESIZING (Device Pixel Ratio)
 // ----------------------------------------------------
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     
     canvas.width = rect.width * dpr;
-    canvas.height = (rect.width * (LOGICAL_HEIGHT / LOGICAL_WIDTH)) * dpr;
-    canvas.style.height = `${rect.width * (LOGICAL_HEIGHT / LOGICAL_WIDTH)}px`;
+    canvas.height = rect.height * dpr;
 
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(canvas.width / LOGICAL_WIDTH, canvas.height / LOGICAL_HEIGHT);
 }
 window.addEventListener('resize', resizeCanvas);
-
-// Initialize resize on script load
 setTimeout(resizeCanvas, 100);
 
 // ----------------------------------------------------
-// 5. EFFECT CLASSES (PARTICLES, FLOATING TEXT, RIPPLES)
+// 7. EFFECT CLASSES (PARTICLES, FLOATING TEXT, RIPPLES)
 // ----------------------------------------------------
 class Particle {
     constructor(x, y, color) {
@@ -262,7 +286,6 @@ function spawnModakBurst(x, y) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         particles.push(new Particle(x, y, color));
     }
-    // Add expanding gold ripple
     ripples.push(new Ripple(x, y, 'rgba(251, 191, 36, 0.8)'));
 }
 
@@ -272,7 +295,6 @@ function spawnIncorrectBurst(x, y) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         particles.push(new Particle(x, y, color));
     }
-    // Add expanding red ripple
     ripples.push(new Ripple(x, y, 'rgba(239, 68, 68, 0.85)'));
 }
 
@@ -286,13 +308,12 @@ function triggerScreenShake() {
     setTimeout(() => {
         gameScreen.classList.remove("shake-screen");
         screenShakeActive = false;
-    }, 350);
+    }, 300);
 }
 
 // ----------------------------------------------------
-// 6. GAME CONTROL FLOW
+// 8. GAME CONTROL FLOW
 // ----------------------------------------------------
-
 function startGame() {
     initAudio();
     gameState = 'playing';
@@ -316,6 +337,7 @@ function startGame() {
     progressFill.style.width = '100%';
     progressFill.className = 'progress-bar-fill';
 
+    showScreen('gameScreen');
     resizeCanvas();
 
     if (gameTimerInterval) clearInterval(gameTimerInterval);
@@ -355,91 +377,109 @@ function startGame() {
             }
         }
     }, 100);
+}
 
-    requestAnimationFrame(gameLoop);
+function endGame(win) {
+    gameState = 'gameover';
+    if (gameTimerInterval) clearInterval(gameTimerInterval);
+
+    playGameOverFanfare(win);
+
+    const resultScreen = document.getElementById("resultScreen");
+    const resultText = document.getElementById("resultText");
+
+    // Include Final Score on Result Screen in clean text format
+    if (win) {
+        resultText.innerHTML = `Victory!<br><span style="font-size: 2.2rem; font-weight: 700; margin-top: 15px; display: block; color: #f7e6cc;">Score: ${score}</span>`;
+        resultScreen.className = "screen active win-bg";
+    } else {
+        resultText.innerHTML = `Game Over!<br><span style="font-size: 2.2rem; font-weight: 700; margin-top: 15px; display: block; color: #fcc; opacity: 0.95;">Score: ${score}</span>`;
+        resultScreen.className = "screen active lose-bg";
+    }
+
+    showScreen("resultScreen");
 }
 
 // ----------------------------------------------------
-// 7. INPUT DETECT HANDLING (WITH GENEROUS HITBOXES)
+// 9. INPUT DETECTION
 // ----------------------------------------------------
-
 function handleTap(clientX, clientY) {
+    if (gameState !== 'playing') return;
+
     const rect = canvas.getBoundingClientRect();
     const clickX = ((clientX - rect.left) / rect.width) * LOGICAL_WIDTH;
     const clickY = ((clientY - rect.top) / rect.height) * LOGICAL_HEIGHT;
 
-    // A. Start Screen Menu clicks
-    if (gameState === 'start') {
-        if (clickX >= startButtonBox.xMin && clickX <= startButtonBox.xMax &&
-            clickY >= startButtonBox.yMin && clickY <= startButtonBox.yMax) {
-            playCorrectSound();
-            startGame();
-        }
-        return;
-    }
+    totalClicks++;
+    let hitModak = null;
 
-    // B. Game Over Screen Restart clicks
-    if (gameState === 'gameover') {
-        if (clickX >= playAgainButtonBox.xMin && clickX <= playAgainButtonBox.xMax &&
-            clickY >= playAgainButtonBox.yMin && clickY <= playAgainButtonBox.yMax) {
-            playCorrectSound();
-            startGame();
-        }
-        return;
-    }
-
-    // C. Active Game clicks
-    if (gameState === 'playing') {
-        totalClicks++;
-        let hitModak = null;
-
-        // Check distance to Modaks - increased hit sensitivity to 55px radius for better mobile/mouse responsiveness
-        for (let m of modaks) {
+    // Check if we hit an uncollected Modak (generous 48px hitbox)
+    for (let m of modaks) {
+        if (!m.collected) {
             const dist = Math.hypot(m.x - clickX, m.y - clickY);
-            if (dist <= 55) {
+            if (dist <= 48) {
                 hitModak = m;
                 break;
             }
         }
+    }
 
-        if (hitModak) {
-            if (!hitModak.collected) {
-                // Correct tap!
-                hitModak.collected = true;
-                correctClicks++;
-                score += 100;
-                document.getElementById("scoreVal").textContent = score;
+    if (hitModak) {
+        // Correct click!
+        hitModak.collected = true;
+        correctClicks++;
+        score += 100;
+        document.getElementById("scoreVal").textContent = score;
 
-                // Play correct sound & spawn sparkles
-                playCorrectSound();
-                spawnModakBurst(hitModak.x, hitModak.y);
-                floatingTexts.push(new FloatingText(hitModak.x, hitModak.y - 15, "+100", "#fbbf24"));
+        playCorrectSound();
+        spawnModakBurst(hitModak.x, hitModak.y);
+        floatingTexts.push(new FloatingText(hitModak.x, hitModak.y - 20, "+100", "#fbbf24"));
 
-                // Check victory condition
-                const allFound = modaks.every(m => m.collected);
-                if (allFound) {
-                    endGame(true);
-                }
+        // Check victory condition
+        const allFound = modaks.every(m => m.collected);
+        if (allFound) {
+            endGame(true);
+        }
+    } else {
+        // Miss: Check if clicked a distraction
+        let hitDistraction = null;
+        for (let d of distractions) {
+            const dist = Math.hypot(d.x - clickX, d.y - clickY);
+            // 48px hit limit for snakes/stones, 40px for leaves
+            const limit = (d.type === 'leaf') ? 40 : 48;
+            if (dist <= limit) {
+                hitDistraction = d;
+                break;
             }
+        }
+
+        let penaltyLabel = "-50";
+        let spawnX = clickX;
+        let spawnY = clickY;
+
+        if (hitDistraction) {
+            const label = hitDistraction.type.charAt(0).toUpperCase() + hitDistraction.type.slice(1);
+            penaltyLabel = `-50 (${label})`;
+            spawnX = hitDistraction.x;
+            spawnY = hitDistraction.y;
         } else {
-            // Mistake check (Only penalize garden area clicks, avoiding left panel)
-            if (clickX > 280) {
-                score = Math.max(0, score - 50);
-                document.getElementById("scoreVal").textContent = score;
+            penaltyLabel = "-50 (Miss)";
+        }
 
-                playIncorrectSound();
-                spawnIncorrectBurst(clickX, clickY);
-                triggerScreenShake();
-                floatingTexts.push(new FloatingText(clickX, clickY - 15, "-50", "#f87171"));
+        score = Math.max(0, score - 50);
+        document.getElementById("scoreVal").textContent = score;
 
-                mistakes++;
-                timeLeft = Math.max(0, timeLeft - 2.0); // Deduct 2 seconds
-                document.getElementById("mistakeVal").textContent = `${mistakes} / ${maxMistakes}`;
+        playIncorrectSound();
+        spawnIncorrectBurst(spawnX, spawnY);
+        triggerScreenShake();
+        floatingTexts.push(new FloatingText(spawnX, spawnY - 20, penaltyLabel, "#f87171"));
 
-                if (mistakes >= maxMistakes) {
-                    endGame(false);
-                }
-            }
+        mistakes++;
+        timeLeft = Math.max(0, timeLeft - 2.0); // Deduct 2 seconds
+        document.getElementById("mistakeVal").textContent = `${mistakes} / ${maxMistakes}`;
+
+        if (mistakes >= maxMistakes) {
+            endGame(false);
         }
     }
 }
@@ -458,35 +498,25 @@ canvas.addEventListener('touchstart', (e) => {
     }
 }, { passive: false });
 
-// ----------------------------------------------------
-// 8. HOVER UX CURSOR DETECTION
-// ----------------------------------------------------
+// Hover cursor detection
 canvas.addEventListener('mousemove', (e) => {
+    if (gameState !== 'playing') {
+        canvas.style.cursor = 'default';
+        return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const clickX = ((e.clientX - rect.left) / rect.width) * LOGICAL_WIDTH;
     const clickY = ((e.clientY - rect.top) / rect.height) * LOGICAL_HEIGHT;
 
     let overInteractive = false;
 
-    if (gameState === 'start') {
-        if (clickX >= startButtonBox.xMin && clickX <= startButtonBox.xMax &&
-            clickY >= startButtonBox.yMin && clickY <= startButtonBox.yMax) {
-            overInteractive = true;
-        }
-    } else if (gameState === 'gameover') {
-        if (clickX >= playAgainButtonBox.xMin && clickX <= playAgainButtonBox.xMax &&
-            clickY >= playAgainButtonBox.yMin && clickY <= playAgainButtonBox.yMax) {
-            overInteractive = true;
-        }
-    } else if (gameState === 'playing') {
-        // Hover pointer on uncollected Modaks
-        for (let m of modaks) {
-            if (!m.collected) {
-                const dist = Math.hypot(m.x - clickX, m.y - clickY);
-                if (dist <= 55) {
-                    overInteractive = true;
-                    break;
-                }
+    for (let m of modaks) {
+        if (!m.collected) {
+            const dist = Math.hypot(m.x - clickX, m.y - clickY);
+            if (dist <= 48) {
+                overInteractive = true;
+                break;
             }
         }
     }
@@ -495,9 +525,8 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 // ----------------------------------------------------
-// 9. GAME LOOP & RENDERING
+// 10. GAME LOOP & RENDERING
 // ----------------------------------------------------
-
 function gameLoop() {
     updateGame();
     drawGame();
@@ -505,13 +534,8 @@ function gameLoop() {
 }
 
 function updateGame() {
-    // Update particles
     particles = particles.filter(part => part.update());
-
-    // Update floating texts
     floatingTexts = floatingTexts.filter(txt => txt.update());
-
-    // Update ripples
     ripples = ripples.filter(rip => rip.update());
 }
 
@@ -522,32 +546,14 @@ function drawGame() {
     if (isBgLoaded) {
         ctx.drawImage(bgImage, 0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     } else {
-        ctx.fillStyle = '#0f172a';
+        ctx.fillStyle = '#0b0f19';
         ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
         ctx.fillStyle = '#ffffff';
         ctx.font = '20px Poppins';
-        ctx.fillText('Loading background...', 100, 250);
+        ctx.fillText('Loading background...', 80, 250);
     }
 
-    // 2. Draw Subtle Target Guides (pulsing gold circles) around uncollected Modaks
-    if (gameState === 'playing') {
-        modaks.forEach(m => {
-            if (!m.collected) {
-                ctx.save();
-                ctx.translate(m.x, m.y);
-                // Pulse gold circle effect
-                const pulseAlpha = 0.22 + Math.sin(Date.now() * 0.005) * 0.08;
-                ctx.strokeStyle = `rgba(251, 191, 36, ${pulseAlpha})`;
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.arc(0, 0, 28, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-            }
-        });
-    }
-
-    // 3. Draw Found Indicators (green spinning ring and checkmark)
+    // 2. Draw Collected Indicators (Checkmarks) over the found Modaks
     if (gameState === 'playing' || gameState === 'gameover') {
         modaks.forEach(m => {
             if (m.collected) {
@@ -560,14 +566,8 @@ function drawGame() {
     ripples.forEach(rip => rip.draw());
     particles.forEach(part => part.draw());
     floatingTexts.forEach(txt => txt.draw());
-
-    // 5. Render Game Over Summary Card
-    if (gameState === 'gameover') {
-        drawGameOverCard();
-    }
 }
 
-// Draw a beautiful rotating checkmark indicator over found Modaks
 function drawCollectedIndicator(x, y) {
     ctx.save();
     ctx.translate(x, y);
@@ -586,7 +586,7 @@ function drawCollectedIndicator(x, y) {
     ctx.fillStyle = 'rgba(16, 185, 129, 0.9)';
     ctx.fill();
 
-    // Symmetrical Checkmark tick
+    // Checkmark tick
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 3.5;
     ctx.lineCap = 'round';
@@ -600,129 +600,14 @@ function drawCollectedIndicator(x, y) {
     ctx.restore();
 }
 
-// Draw Summary panel on Canvas (Game Over screen)
-function drawGameOverCard() {
-    const cardX = 420;
-    const cardY = 100;
-    const cardW = 300;
-    const cardH = 280;
-
-    ctx.save();
-
-    // Drop shadow
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-    
-    // Glassmorphic panel body
-    ctx.fillStyle = 'rgba(30, 27, 75, 0.88)';
-    ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)';
-    ctx.lineWidth = 2.5;
-    
-    ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
-    ctx.fill();
-    ctx.shadowColor = 'transparent';
-    ctx.stroke();
-
-    ctx.textAlign = 'center';
-    
-    const win = modaks.every(m => m.collected);
-    
-    // Card Title
-    ctx.font = 'bold 28px Poppins';
-    if (win) {
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText('VICTORY!', cardX + cardW/2, cardY + 50);
-    } else if (mistakes >= maxMistakes) {
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText('OUT OF LIVES!', cardX + cardW/2, cardY + 50);
-    } else {
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillText("TIME'S UP!", cardX + cardW/2, cardY + 50);
-    }
-
-    // Subtitle
-    ctx.font = '500 13px Poppins';
-    ctx.fillStyle = '#cbd5e1';
-    const subtext = win ? "Superb selective attention!" : "Filter out the distractions!";
-    ctx.fillText(subtext, cardX + cardW/2, cardY + 75);
-
-    // Separator Line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cardX + 25, cardY + 95);
-    ctx.lineTo(cardX + cardW - 25, cardY + 95);
-    ctx.stroke();
-
-    // stats list
-    ctx.textAlign = 'left';
-    ctx.font = '600 15px Poppins';
-    ctx.fillStyle = '#94a3b8';
-    
-    ctx.fillText("Final Score:", cardX + 35, cardY + 130);
-    ctx.fillText("Accuracy:", cardX + 35, cardY + 160);
-    ctx.fillText("High Score:", cardX + 35, cardY + 190);
-
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(score.toString(), cardX + cardW - 35, cardY + 130);
-    
-    let accuracy = 100;
-    if (totalClicks > 0) {
-        accuracy = Math.round((correctClicks / totalClicks) * 100);
-    }
-    ctx.fillText(`${accuracy}%`, cardX + cardW - 35, cardY + 160);
-    ctx.fillText(highScore.toString(), cardX + cardW - 35, cardY + 190);
-
-    // Button metrics
-    const btnX = playAgainButtonBox.xMin;
-    const btnY = playAgainButtonBox.yMin;
-    const btnW = playAgainButtonBox.xMax - playAgainButtonBox.xMin;
-    const btnH = playAgainButtonBox.yMax - playAgainButtonBox.yMin;
-
-    const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
-    btnGrad.addColorStop(0, '#fbbf24');
-    btnGrad.addColorStop(1, '#d97706');
-    
-    ctx.beginPath();
-    ctx.roundRect(btnX, btnY, btnW, btnH, 12);
-    ctx.fillStyle = btnGrad;
-    ctx.fill();
-    ctx.strokeStyle = '#451a03';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 15px Poppins';
-    ctx.fillText('🔄 PLAY AGAIN', btnX + btnW/2, btnY + btnH/2 + 5.5);
-
-    ctx.restore();
-}
-
 // ----------------------------------------------------
-// 10. GAME OVER CONTROL STATE
-// ----------------------------------------------------
-function endGame(win) {
-    gameState = 'gameover';
-    if (gameTimerInterval) clearInterval(gameTimerInterval);
-
-    let newBest = false;
-    if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("modak_high_score", highScore);
-        document.getElementById("highScoreVal").textContent = highScore;
-        newBest = true;
-    }
-
-    playGameOverFanfare(win || newBest);
-}
-
-// ----------------------------------------------------
-// 11. INITIALIZATION & KICK-OFF
+// 11. INITIALIZATION
 // ----------------------------------------------------
 requestAnimationFrame(gameLoop);
+
+// Show start screen on boot
+showScreen('startScreen');
+
 window.onload = () => {
     resizeCanvas();
 };
